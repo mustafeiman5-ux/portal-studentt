@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime College Management System</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <!-- FIREBASE LIBRARIES -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body{
+            background: var(--bg-main);
+            color: var(--text-main);
+            overflow-x:hidden;
+        }
+
+        /* LOGIN PAGE */
+        .login-page{
+            width:100%;
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+            padding: 20px;
+        }
+
+        .login-box{
+            width:100%;
+            max-width:440px;
+            background: var(--card-bg);
+            padding:40px;
+            border-radius:24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .login-header{
+            text-align:center;
+            margin-bottom:30px;
+        }
+
+        .login-header img{
+            width:90px;
+            height:90px;
+            margin-bottom:15px;
+            object-fit: contain;
+        }
+
+        .login-header h1{
+            font-size:32px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .login-header p{
+            color: var(--text-muted);
+            margin-top:5px;
+            font-size: 14px;
+        }
+
+        .login-box h2{
+            text-align:center;
+            margin-bottom:25px;
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        input, select{
+            width:100%;
+            padding:14px 16px;
+            margin-top:14px;
+            border-radius:12px;
+            border:1px solid var(--border-color);
+            font-size:15px;
+            color: var(--text-main);
+            background-color: #fff;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(37, 99, 211, 0.15);
+        }
+
+        button{
+            padding:14px 20px;
+            border:none;
+            border-radius:12px;
+            cursor:pointer;
+            font-weight:600;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .save{
+            width:100%;
+            background: var(--accent);
+            color:white;
+            margin-top:24px;
+        }
+        .save:hover { background: var(--accent-hover); }
+
+        .edit{ background: var(--success); color:white; padding:8px 14px; margin:3px; font-size: 13px; border-radius: 8px;}
+        .delete{ background: var(--danger); color:white; padding:8px 14px; margin:3px; font-size: 13px; border-radius: 8px;}
+
+        /* SYSTEM LAYOUT CONTROL */
+        .system{
+            display:none;
+            width: 100%;
+        }
+
+        /* SIDEBAR */
+        .sidebar{
+            width:280px;
+            height:100vh;
+            background: var(--primary);
+            padding:24px;
+            position:fixed;
+            left:0;
+            top:0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 100;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-menu {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .nav-logo{
+            display:flex;
+            align-items:center;
+            gap:14px;
+            margin-bottom:30px;
+            padding-bottom:20px;
+            border-bottom:1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-logo img{
+            width:50px;
+            height:50px;
+            border-radius:12px;
+            background:white;
+            padding:6px;
+        }
+
+        .nav-logo h1{
+            color:white;
+            font-size:20px;
+            font-weight: 700;
+        }
+
+        .sidebar button{
+            width:100%;
+            margin-bottom:8px;
+            background: transparent;
+            color: #94a3b8;
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 500;
+            font-size: 14px;
+            justify-content: flex-start;
+        }
+
+        .sidebar button i {
+            font-size: 16px;
+            width: 24px;
+        }
+
+        .sidebar button:hover, .sidebar button.active-nav {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* SUB-MENU FOR SEMESTERS */
+        .sub-menu {
+            display: none;
+            flex-direction: column;
+            padding-left: 15px;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+
+        .sub-menu button {
+            background: transparent;
+            font-size: 13px;
+            padding: 10px 16px;
+            margin-bottom: 2px;
+            border-left: 2px solid transparent;
+            border-radius: 0 8px 8px 0;
+            color: #cbd5e1;
+        }
+
+        .sub-menu button:hover, .sub-menu button.active-sub {
+            background: rgba(255, 255, 255, 0.05);
+            color: #3b82f6;
+            border-left-color: #3b82f6;
+        }
+
+        .sidebar button:disabled {
+            background: transparent !important;
+            color: #475569 !important;
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: none !important;
+        }
+
+        /* PROFILE PANEL */
+        .sidebar-profile {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 16px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .profile-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-container i {
+            font-size: 32px;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 6px;
+            border-radius: 50%;
+        }
+
+        .profile-details h4 {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .profile-details p { color: #94a3b8; font-size: 12px; margin-top: 2px; font-weight: 500; }
+        .role-badge-admin { color: #10b981 !important; font-weight: 600;}
+        .role-badge-user { color: #f59e0b !important; font-weight: 600;}
+
+        /* MAIN SECTION */
+        .main{
+            margin-left:280px;
+            padding:40px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .student-only-view { margin-left: 0 !important; width: 100% !important; padding: 30px; }
+        .section { display:none; }
+        .active { display:block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CARD */
+        .card{
+            background: var(--card-bg);
+            padding:30px;
+            border-radius:20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            margin-bottom:30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2{ margin-bottom:24px; color: var(--primary); font-size: 22px; font-weight: 600;}
+
+        /* HEADER */
+        .faculty-header{
+            display:flex;
+            align-items:center;
+            gap:24px;
+            margin-bottom:30px;
+            padding-bottom:20px;
+            border-bottom:1px solid var(--border-color);
+        }
+
+        .faculty-header img{
+            width:70px;
+            height:70px;
+            border-radius:16px;
+            background: var(--bg-main);
+            padding:10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .faculty-header h2 { font-size: 24px; font-weight: 700; color: var(--primary); margin: 0;}
+        .faculty-header p { color: var(--text-muted); font-size: 14px; margin-top: 4px;}
+
+        /* GRID */
+        .grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
+        
+        /* MODERN DASHBOARD */
+        .dashboard-welcome {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 24px;
+            margin-bottom: 35px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+        }
+        .dashboard-welcome h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+        .dashboard-welcome p { color: #93c5fd; font-size: 15px; margin-top: 6px; }
+
+        .dashboard-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:25px; width: 100%; }
+
+        .dashboard-card{
+            position: relative;
+            overflow: hidden;
+            color: white;
+            padding: 28px 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .dashboard-card:hover{ transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        .card-cs { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .card-health { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .card-business { background: linear-gradient(135deg, #10b981, #059669); }
+        .card-social { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .card-admins { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .card-archives { background: linear-gradient(135deg, #475569, #334155); }
+
+        .card-info h2 { font-size: 15px; font-weight: 500; opacity: 0.85; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .card-info h1 { font-size: 42px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+        .card-info p { font-size: 13px; opacity: 0.75; }
+        
+        .card-icon i {
+            font-size: 48px;
+            opacity: 0.2;
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover .card-icon i { transform: scale(1.1) rotate(-5deg); opacity: 0.35; }
+
+        /* TABLE Styles */
+        .table-container{ width: 100%; overflow-x:auto; margin-top:20px; border-radius: 12px; border: 1px solid var(--border-color); }
+        table{ width:100%; border-collapse:collapse; min-width:1000px; background: #fff;}
+        th{ background: #f8fafc; color: var(--text-main); padding:16px; text-align:center; font-weight: 600; font-size: 14px; border-bottom: 2px solid var(--border-color);}
+        td{ padding:14px; border-bottom:1px solid var(--border-color); text-align:center; white-space:nowrap; font-size: 14px; color: #334155;}
+        tr:hover td { background-color: #f8fafc; }
+
+        /* PORTAL STYLES */
+        .portal-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .portal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 24px; margin-bottom: 24px; }
+        .college-info h2 { color: var(--primary); font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+        .college-info p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+        .report-badge { background: rgba(37, 99, 211, 0.1); color: var(--accent); padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 600; }
+        
+        .student-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            background: var(--bg-main);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .meta-item { font-size: 15px; color: #334155; }
+        .meta-item strong { color: var(--primary); display: inline-block; width: 135px; font-weight: 600; }
+        .results-box h3 { color: var(--primary); margin-bottom: 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .courses-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+        
+        .course-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .course-name { font-weight: 500; color: var(--text-main); font-size: 15px; }
+        .course-score { font-weight: 600; font-size: 16px; padding: 6px 14px; border-radius: 8px; }
+        .score-pass { color: var(--success); background: rgba(16, 185, 129, 0.1); }
+        .score-fail { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
+        .summary-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: var(--primary);
+            color: white;
+            padding: 28px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .summary-block h4 { font-size: 13px; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .summary-block .grand-value { font-size: 36px; font-weight: 700; color: #fff; }
+        .grade-circle { width: 75px; height: 75px; border-radius: 50%; background: white; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 700; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        
+        .g-ap, .g-a, .g-am { color: var(--success); }
+        .g-bp, .g-b, .g-bm { color: var(--accent); }
+        .g-cp, .g-c, .g-cm { color: #f59e0b; }
+        .g-d { color: #d97706; }
+        .g-f { color: var(--danger); }
+
+        @media screen and (max-width: 992px) {
+            .sidebar { width: 80px; padding: 20px 10px; }
+            .sidebar button { font-size: 11px; padding: 12px 0; text-align: center; justify-content: center; }
+            .sidebar button i { margin: 0; width: auto; font-size: 18px;}
+            .sidebar button span { display: none; }
+            .nav-logo h1, .sidebar-profile { display: none; }
+            .nav-logo { justify-content: center; padding-bottom: 10px; }
+            .main { margin-left: 80px; width: calc(100% - 80px); padding: 24px; }
+            .sub-menu { padding-left: 0; }
+            .sub-menu button { border-left: none; border-bottom: 2px solid transparent; border-radius: 4px; text-align: center; padding: 8px 0; font-size: 11px;}
+        }
+
+        @media screen and (max-width: 576px) {
+            .student-meta-grid { grid-template-columns: 1fr; }
+            .summary-wrapper { flex-direction: column; gap: 20px; }
+            .portal-header { flex-direction: column; text-align: center; gap: 15px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN PAGE -->
+    <div class="login-page" id="loginPage">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Logo">
+                <h1>Prime College</h1>
+                <p>Academic Management System</p>
+            </div>
+            <h2>User Login</h2>
+            <input type="text" id="loginUser" placeholder="Enter Username">
+            <input type="password" id="loginPass" placeholder="Enter Password">
+            <button class="save" onclick="login()"><i class="fa fa-sign-in"></i> Login</button>
+        </div>
+    </div>
+
+    <!-- SYSTEM LAYOUT -->
+    <div class="system" id="systemPage">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar" id="mainSidebar">
+            <div class="sidebar-menu">
+                <div class="nav-logo">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Logo">
+                    <h1>Prime College</h1>
+                </div>
+                <button class="nav-btn" onclick="showSection('dashboardSection', this)"><i class="fa fa-dashboard"></i> <span>Dashboard</span></button>
+                <button class="nav-btn" id="btnUserManagement" onclick="showSection('adminUsersSection', this)"><i class="fa fa-users"></i> <span>User Management</span></button>
+                
+                <!-- COMPUTER SCIENCE -->
+                <button class="nav-btn" onclick="toggleSubMenu('csSubMenu', 'Computer Science', this)"><i class="fa fa-laptop"></i> <span>Computer Science</span></button>
+                <div id="csSubMenu" class="sub-menu">
+                    <button class="sub-btn" onclick="openFacultySemester('Computer Science', 'Semester 1', this)">Semester 1</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Computer Science', 'Semester 2', this)">Semester 2</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Computer Science', 'Semester 3', this)">Semester 3</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Computer Science', 'Semester 4', this)">Semester 4</button>
+                </div>
+
+                <!-- HEALTH SCIENCE -->
+                <button class="nav-btn" onclick="toggleSubMenu('healthSubMenu', 'Health Science', this)"><i class="fa fa-heartbeat"></i> <span>Health Science</span></button>
+                <div id="healthSubMenu" class="sub-menu">
+                    <button class="sub-btn" onclick="openFacultySemester('Health Science', 'Semester 1', this)">Semester 1</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Health Science', 'Semester 2', this)">Semester 2</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Health Science', 'Semester 3', this)">Semester 3</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Health Science', 'Semester 4', this)">Semester 4</button>
+                </div>
+
+                <!-- BUSINESS -->
+                <button class="nav-btn" onclick="toggleSubMenu('businessSubMenu', 'Business', this)"><i class="fa fa-briefcase"></i> <span>Business</span></button>
+                <div id="businessSubMenu" class="sub-menu">
+                    <button class="sub-btn" onclick="openFacultySemester('Business', 'Semester 1', this)">Semester 1</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Business', 'Semester 2', this)">Semester 2</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Business', 'Semester 3', this)">Semester 3</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Business', 'Semester 4', this)">Semester 4</button>
+                </div>
+
+                <!-- SOCIAL SCIENCE -->
+                <button class="nav-btn" onclick="toggleSubMenu('socialSubMenu', 'Social Science', this)"><i class="fa fa-globe"></i> <span>Social Science</span></button>
+                <div id="socialSubMenu" class="sub-menu">
+                    <button class="sub-btn" onclick="openFacultySemester('Social Science', 'Semester 1', this)">Semester 1</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Social Science', 'Semester 2', this)">Semester 2</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Social Science', 'Semester 3', this)">Semester 3</button>
+                    <button class="sub-btn" onclick="openFacultySemester('Social Science', 'Semester 4', this)">Semester 4</button>
+                </div>
+
+                <button class="nav-btn" onclick="showSection('resultPortalSection', this)"><i class="fa fa-graduation-cap"></i> <span>Result Portal</span></button>
+                <button class="nav-btn" id="btnArchive" onclick="showSection('archiveSection', this)"><i class="fa fa-archive"></i> <span>Yearly Archive</span></button>
+                <button class="nav-btn" onclick="logout()" style="color: #f87171;"><i class="fa fa-sign-out"></i> <span>Logout</span></button>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="profile-container">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="profile-details">
+                        <h4 id="profileName">Username</h4>
+                        <p id="profileRole">Role: Admin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="main" id="mainContent">
+
+            <!-- DASHBOARD SECTION -->
+            <div id="dashboardSection" class="section active">
+                <div class="dashboard-welcome">
+                    <h1 id="welcomeTitle">Welcome Back, Admin!</h1>
+                    <p>Here is the live academic status and summary overview of Prime College.</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="dashboard-card card-cs">
+                        <div class="card-info">
+                            <h2>Computer Science</h2>
+                            <h1 id="csCount">0</h1>
+                            <p>Students Enrolled</p>
+                        </div>
+                        <div class="card-icon"><i class="fa fa-laptop"></i></div>
+                    </div>
+                    <div class="dashboard-card card-health">
+                        <div class="card-info">
+                            <h2>Health Science</h2>
+                            <h1 id="healthCount">0</h1>
+                            <p>Students Enrolled</p>
+                        </div>
+                        <div class="card-icon"><i class="fa fa-heartbeat"></i></div>
+                    </div>
+                    <div class="dashboard-card card-business">
+                        <div class="card-info">
+                            <h2>Business Faculty</h2>
+                            <h1 id="businessCount">0</h1>
+                            <p>Students Enrolled</p>
+                        </div>
+                        <div class="card-icon"><i class="fa fa-briefcase"></i></div>
+                    </div>
+                    <div class="dashboard-card card-social">
+                        <div class="card-info">
+                            <h2>Social Science</h2>
+                            <h1 id="socialCount">0</h1>
+                            <p>Students Enrolled</p>
+                        </div>
+                        <div class="card-icon"><i class="fa fa-globe"></i></div>
+                    </div>
+                    <div class="dashboard-card card-admins">
+                        <div class="card-info">
+                            <h2>System Accounts</h2>
+                            <h1 id="adminCount">0</h1>
+                            <p>Admins & Users</p>
+                        </div>
+                        <div class="card-icon"><i class="fa fa-users"></i></div>
+                    </div>
+                    <div class="dashboard-card card-archives">
+                        <div class="card-info">
+                            <h2>Archived Folders</h2>
+                            <h1 id="archiveCount">0</h1>
+                            <p>Yearly Records</p>
+                        </div>
+                        <div class="card-icon"><i class="fa fa-archive"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USER MANAGEMENT SECTION -->
+            <div id="adminUsersSection" class="section">
+                <div class="card">
+                    <h2>User Management</h2>
+                    <div class="grid">
+                        <input type="text" id="newAdminUser" placeholder="Create Username">
+                        <input type="password" id="newAdminPass" placeholder="Create Password">
+                        <select id="newAdminRole">
+                            <option value="Admin">Admin (Full Access)</option>
+                            <option value="User">User (Restricted Access)</option>
+                        </select>
+                    </div>
+                    <button class="save" onclick="createAdmin()"><i class="fa fa-save"></i> Save User</button>
+                </div>
+                <div class="card">
+                    <h2>All Registered Accounts</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th><th>Password</th><th>Role</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FACULTY MANAGE SECTION -->
+            <div id="facultySection" class="section">
+                <div class="card">
+                    <div id="facultyTitle"></div>
+                    <div class="grid">
+                        <input type="text" id="studentName" placeholder="Student Full Name">
+                        <input type="text" id="studentId" placeholder="Student Unique ID">
+                        <input type="password" id="studentPass" placeholder="Student Password">
+                        <select id="department"><option value="">Select Department</option></select>
+                        <select id="shift">
+                            <option value="">Select Shift</option><option>Morning</option><option>Afternoon</option><option>Evening</option>
+                        </select>
+                        <select id="semester">
+                            <option value="">Select Semester</option>
+                            <option>Semester 1</option><option>Semester 2</option><option>Semester 3</option><option>Semester 4</option>
+                        </select>
+                        <input type="text" id="course1" placeholder="Course 1 Name"><input type="number" id="mark1" placeholder="Result 1">
+                        <input type="text" id="course2" placeholder="Course 2 Name"><input type="number" id="mark2" placeholder="Result 2">
+                        <input type="text" id="course3" placeholder="Course 3 Name"><input type="number" id="mark3" placeholder="Result 3">
+                        <input type="text" id="course4" placeholder="Course 4 Name"><input type="number" id="mark4" placeholder="Result 4">
+                        <input type="text" id="course5" placeholder="Course 5 Name"><input type="number" id="mark5" placeholder="Result 5">
+                    </div>
+                    <button class="save" onclick="saveStudent()"><i class="fa fa-user-plus"></i> Save Student Data</button>
+                </div>
+
+                <div class="card">
+                    <h2 id="tableTitleText">Faculty Students</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th><th>ID</th><th>Department</th><th>Shift</th><th>Semester</th>
+                                    <th id="header1">Course 1</th><th id="header2">Course 2</th><th id="header3">Course 3</th><th id="header4">Course 4</th><th id="header5">Course 5</th>
+                                    <th>Average</th><th>Grade</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULT PORTAL SECTION -->
+            <div id="resultPortalSection" class="section">
+                <div class="card">
+                    <h2 style="text-align: center;">Student Result Portal</h2>
+                    <div style="max-width: 480px; margin: 0 auto; padding: 10px;">
+                        <input type="text" id="studentLoginId" placeholder="Enter Student ID">
+                        <input type="password" id="studentLoginPass" placeholder="Enter Student Password">
+                        <button class="save" style="background:var(--accent);" onclick="loginStudent()"><i class="fa fa-search"></i> Check Result</button>
+                    </div>
+                    <div id="result"></div>
+                </div>
+            </div>
+
+            <!-- ARCHIVE SECTION -->
+            <div id="archiveSection" class="section">
+                <div class="card">
+                    <h2>Yearly Archive System</h2>
+                    <div class="grid">
+                        <select id="archiveFaculty">
+                            <option value="">Select Faculty</option><option>Computer Science</option><option>Health Science</option><option>Business</option><option>Social Science</option>
+                        </select>
+                        <input type="text" id="archiveYear" placeholder="Enter Academic Year (e.g. 2026)">
+                        <input type="text" id="customFolder" placeholder="Enter Archive Folder Name">
+                    </div>
+                    <button class="save" onclick="exportYearData()"><i class="fa fa-archive"></i> Archive & Export Students</button>
+                    <div id="archiveResult" style="margin-top: 20px;"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Archive Folders</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Faculty</th><th>Year</th><th>Folder</th><th>Date Archived</th><th>Students</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archiveTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    let admins = JSON.parse(localStorage.getItem("admins")) || [{username:"admin",password:"12345",role:"Admin"}];
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let archives = JSON.parse(localStorage.getItem("archives")) || [];
+
+    let currentFaculty="";
+    let currentSemester=""; 
+    let editIndex=-1;
+    let adminEditIndex=-1;
+    let loggedInUser = null;
+
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.database();
+    }
+
+    const facultyDepartments = {
+        "Computer Science": ["Software Engineering", "Networking", "Information Technology", "Cyber Security"],
+        "Health Science": ["Nursing", "Midwifery", "Public Health", "Medical Laboratory"],
+        "Business": ["Accounting", "Business Management", "Human Resource", "Banking & Finance"],
+        "Social Science": ["Social Work", "Public Administration", "International Relations", "Development Studies"]
+    };
+
+    function toggleSubMenu(menuId, facultyName, btnElement) {
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            if(menu.id !== menuId) menu.style.display = 'none';
+        });
+        let menu = document.getElementById(menuId);
+        menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+        
+        setActiveNav(btnElement);
+        openFacultySemester(facultyName, "");
+    }
+
+    function setActiveNav(element) {
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-nav'));
+        if(element) element.classList.add('active-nav');
+    }
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('page') === 'result') {
+            loginPage.style.display = "none";
+            mainSidebar.style.display = "none";
+            systemPage.style.display = "flex";
+            mainContent.classList.add("student-only-view");
+            showSection('resultPortalSection');
+        }
+        if (typeof db !== 'undefined') fetchDataFromFirebase();
+    };
+
+    function fetchDataFromFirebase() {
+        db.ref('students').on('value', (snapshot) => {
+            if(snapshot.exists()){
+                students = Object.values(snapshot.val());
+                localStorage.setItem("students", JSON.stringify(students));
+                updateDashboard();
+                if(currentFaculty) displayStudents();
+            }
+        });
+        db.ref('admins').on('value', (snapshot) => {
+            if(snapshot.exists()){
+                admins = Object.values(snapshot.val());
+                localStorage.setItem("admins", JSON.stringify(admins));
+                displayAdmins();
+                updateDashboard();
+            }
+        });
+    }
+
+    function login(){
+        let username = loginUser.value.trim();
+        let password = loginPass.value.trim();
+        let found = admins.find(admin=> admin.username===username && admin.password===password);
+
+        if(found){
+            loggedInUser = found;
+            loginPage.style.display="none";
+            systemPage.style.display="flex";
+            profileName.innerHTML = loggedInUser.username;
+            welcomeTitle.innerHTML = `Welcome Back, ${loggedInUser.username}!`;
+            profileRole.innerHTML = `Role: <span class="${loggedInUser.role === 'Admin' ? 'role-badge-admin' : 'role-badge-user'}">${loggedInUser.role}</span>`;
+
+            if(loggedInUser.role === "User"){
+                document.getElementById("btnUserManagement").disabled = true;
+                document.getElementById("btnArchive").disabled = true;
+            } else {
+                document.getElementById("btnUserManagement").disabled = false;
+                document.getElementById("btnArchive").disabled = false;
+            }
+
+            showSection("dashboardSection");
+            displayAdmins();
+            displayArchives();
+            updateDashboard();
+        }else{ alert("Invalid Username Or Password"); }
+    }
+
+    function logout(){
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('page') === 'result') { location.reload(); return; }
+        systemPage.style.display="none"; loginPage.style.display="flex";
+        loginUser.value=""; loginPass.value=""; loggedInUser = null;
+    }
+
+    function showSection(id, btnElement){
+        if((id === "adminUsersSection" || id === "archiveSection") && loggedInUser && loggedInUser.role === "User"){
+            alert("Access Denied!"); return;
+        }
+        document.querySelectorAll(".section").forEach(section=>{ section.classList.remove("active"); });
+        document.getElementById(id).classList.add("active");
+        
+        if(btnElement) setActiveNav(btnElement);
+        
+        if(id !== "facultySection") {
+            document.querySelectorAll('.sub-menu').forEach(menu => menu.style.display = 'none');
+            document.querySelectorAll('.sub-btn').forEach(btn => btn.classList.remove('active-sub'));
+        }
+    }
+
+    function updateDashboard(){
+        csCount.innerHTML = students.filter(s=>s.faculty==="Computer Science").length;
+        healthCount.innerHTML = students.filter(s=>s.faculty==="Health Science").length;
+        businessCount.innerHTML = students.filter(s=>s.faculty==="Business").length;
+        socialCount.innerHTML = students.filter(s=>s.faculty==="Social Science").length;
+        adminCount.innerHTML = admins.length;
+        archiveCount.innerHTML = archives.length;
+    }
+
+    function createAdmin(){
+        let username = newAdminUser.value.trim();
+        let password = newAdminPass.value.trim();
+        let role = newAdminRole.value;
+
+        if(username==="" || password===""){ alert("Fill All Fields"); return; }
+        if(admins.some((admin, index) => admin.username === username && index !== adminEditIndex)) { alert("Username exists!"); return; }
+
+        let newAdminObj = { username, password, role };
+        if(adminEditIndex===-1){ admins.push(newAdminObj); }else{
+            if(admins[adminEditIndex].username === "admin" && role === "User"){ alert("Cannot demote master admin!"); return; }
+            admins[adminEditIndex]=newAdminObj; adminEditIndex=-1;
+        }
+
+        localStorage.setItem("admins", JSON.stringify(admins));
+        if (typeof db !== 'undefined') db.ref('admins').set(admins);
+        displayAdmins(); updateDashboard();
+        newAdminUser.value=""; newAdminPass.value=""; newAdminRole.value="Admin";
+    }
+
+    function displayAdmins(){
+        adminTable.innerHTML="";
+        admins.forEach((admin,index)=>{
+            adminTable.innerHTML += `<tr><td>${admin.username}</td><td>${admin.password}</td><td><span class="${admin.role === 'Admin' ? 'role-badge-admin' : 'role-badge-user'}">${admin.role || 'Admin'}</span></td><td><button class="edit" onclick="editAdmin(${index})"><i class="fa fa-edit"></i></button><button class="delete" onclick="deleteAdmin(${index})"><i class="fa fa-trash"></i></button></td></tr>`;
+        });
+    }
+
+    function editAdmin(index){ newAdminUser.value = admins[index].username; newAdminPass.value = admins[index].password; newAdminRole.value = admins[index].role || "Admin"; adminEditIndex=index; }
+    function deleteAdmin(index){
+        if(admins[index].username === "admin"){ alert("Master account cannot be deleted!"); return; }
+        if(confirm("Delete this account?")){ admins.splice(index,1); localStorage.setItem("admins", JSON.stringify(admins)); if (typeof db !== 'undefined') db.ref('admins').set(admins); displayAdmins(); updateDashboard(); }
+    }
+
+    function openFacultySemester(faculty, semester, subBtnElement) {
+        currentFaculty = faculty;
+        currentSemester = semester; 
+        showSection("facultySection");
+        
+        if(subBtnElement) {
+            document.querySelectorAll('.sub-btn').forEach(btn => btn.classList.remove('active-sub'));
+            subBtnElement.classList.add('active-sub');
+        }
+        
+        let filterText = semester ? ` - ${semester}` : " - All Semesters";
+        facultyTitle.innerHTML=`
+        <div class="faculty-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Faculty logo">
+            <div>
+                <h2>Faculty of ${faculty}${filterText}</h2>
+                <p>Prime College Academic Control Panel</p>
+            </div>
+        </div>`;
+        
+        tableTitleText.innerHTML = `${faculty} Students Registered (${semester || 'All Semesters'})`;
+
+        let deptSelect = document.getElementById("department");
+        deptSelect.innerHTML = '<option value="">Select Department</option>';
+        if(facultyDepartments[faculty]){
+            facultyDepartments[faculty].forEach(dept => { deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`; });
+        }
+
+        displayStudents();
+        clearForm();
+        if(semester) document.getElementById("semester").value = semester;
+    }
+
+    function updateHeaders(){
+        header1.innerHTML= course1.value || "Course 1"; header2.innerHTML= course2.value || "Course 2"; header3.innerHTML= course3.value || "Course 3"; header4.innerHTML= course4.value || "Course 4"; header5.innerHTML= course5.value || "Course 5";
+    }
+    course1.oninput=updateHeaders; course2.oninput=updateHeaders; course3.oninput=updateHeaders; course4.oninput=updateHeaders; course5.oninput=updateHeaders;
+
+    function calculateGrade(avg){
+        if(avg >= 95) return "A+"; if(avg >= 90) return "A"; if(avg >= 85) return "A-"; if(avg >= 80) return "B+"; if(avg >= 75) return "B"; if(avg >= 70) return "B-"; if(avg >= 65) return "C+"; if(avg >= 60) return "C"; if(avg >= 55) return "C-"; if(avg >= 50) return "D"; return "F";
+    }
+    function getGradeClass(grade) {
+        if(grade.startsWith("A")) return "g-ap"; if(grade.startsWith("B")) return "g-bp"; if(grade.startsWith("C")) return "g-cp"; if(grade === "D") return "g-d"; return "g-f";
+    }
+
+    function saveStudent(){
+        let sId = studentId.value.trim(); let sName = studentName.value.trim();
+        if( sName==="" || sId==="" || studentPass.value==="" || department.value==="" || semester.value==="" ){ alert("Fill All Student Fields!"); return; }
+
+        if(students.some((s, index) => s.id === sId && index !== editIndex)){ alert("Error: Student ID Exists!"); return; }
+        let marks=[ Number(mark1.value), Number(mark2.value), Number(mark3.value), Number(mark4.value), Number(mark5.value) ];
+        if(marks.some(mark => mark > 100 || mark < 0)){ alert("Marks Must Be Between 0 and 100"); return; }
+
+        let average = marks.reduce((a,b)=>a+b,0)/5;
+        let student={
+            faculty:currentFaculty, name:sName, id:sId, pass:studentPass.value, department:department.value, shift:shift.value, semester:semester.value,
+            courses:[
+                { course:course1.value || "Course 1", mark:marks[0] }, { course:course2.value || "Course 2", mark:marks[1] }, { course:course3.value || "Course 3", mark:marks[2] }, { course:course4.value || "Course 4", mark:marks[3] }, { course:course5.value || "Course 5", mark:marks[4] }
+            ],
+            average, grade: calculateGrade(average)
+        };
+
+        if(editIndex===-1){ students.push(student); }else{ students[editIndex]=student; editIndex=-1; }
+
+        localStorage.setItem("students", JSON.stringify(students));
+        if (typeof db !== 'undefined') db.ref('students').set(students);
+
+        displayStudents(); updateDashboard(); clearForm();
+    }
+
+    function displayStudents(){
+        studentTable.innerHTML="";
+        let filtered = students.filter(s => s.faculty === currentFaculty);
+        if(currentSemester !== "") { filtered = filtered.filter(s => s.semester === currentSemester); }
+
+        filtered.forEach((student)=>{
+            let globalIndex = students.findIndex(st => st.id === student.id);
+            let gClass = getGradeClass(student.grade);
+
+            studentTable.innerHTML += `
+            <tr>
+                <td style="font-weight:600; text-align:left;">${student.name}</td><td><code>${student.id}</code></td><td>${student.department}</td><td>${student.shift}</td><td>${student.semester}</td>
+                <td style="font-weight:600; color:${student.courses[0].mark<50?'#ef4444':'#10b981'};">${student.courses[0].mark}</td>
+                <td style="font-weight:600; color:${student.courses[1].mark<50?'#ef4444':'#10b981'};">${student.courses[1].mark}</td>
+                <td style="font-weight:600; color:${student.courses[2].mark<50?'#ef4444':'#10b981'};">${student.courses[2].mark}</td>
+                <td style="font-weight:600; color:${student.courses[3].mark<50?'#ef4444':'#10b981'};">${student.courses[3].mark}</td>
+                <td style="font-weight:600; color:${student.courses[4].mark<50?'#ef4444':'#10b981'};">${student.courses[4].mark}</td>
+                <td style="font-weight:600;">${student.average.toFixed(2)}%</td><td><strong class="${gClass}">${student.grade}</strong></td>
+                <td>
+                    <button class="edit" onclick="editStudent(${globalIndex})"><i class="fa fa-edit"></i></button>
+                    <button class="delete" onclick="deleteStudent(${globalIndex})"><i class="fa fa-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+    }
+
+    function editStudent(realIndex){
+        editIndex = realIndex; let s = students[realIndex];
+        studentName.value=s.name; studentId.value=s.id; studentPass.value=s.pass; department.value=s.department; shift.value=s.shift; semester.value=s.semester;
+        course1.value=s.courses[0].course; mark1.value=s.courses[0].mark; course2.value=s.courses[1].course; mark2.value=s.courses[1].mark;
+        course3.value=s.courses[2].course; mark3.value=s.courses[2].mark; course4.value=s.courses[3].course; mark4.value=s.courses[3].mark;
+        course5.value=s.courses[4].course; mark5.value=s.courses[4].mark;
+        updateHeaders(); window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function deleteStudent(realIndex){
+        if(confirm("Are you sure you want to delete this student?")){ students.splice(realIndex, 1); localStorage.setItem("students", JSON.stringify(students)); if (typeof db !== 'undefined') db.ref('students').set(students); displayStudents(); updateDashboard(); }
+    }
+
+    function clearForm(){
+        editIndex = -1; studentName.value=""; studentId.value=""; studentPass.value=""; department.selectedIndex=0; shift.selectedIndex=0; semester.selectedIndex=0;
+        course1.value=""; mark1.value=""; course2.value=""; mark2.value=""; course3.value=""; mark3.value=""; course4.value=""; mark4.value=""; course5.value=""; mark5.value="";
+        updateHeaders();
+    }
+
+    function loginStudent(){
+        let student = students.find(s=> s.id===studentLoginId.value.trim() && s.pass===studentLoginPass.value.trim());
+        if(student){
+            let gClass = getGradeClass(student.grade);
+            result.innerHTML=`
+            <div class="portal-container">
+                <div class="portal-header">
+                    <div class="college-info"><h2>Prime College</h2><p>Official Student Academic Transcript</p></div>
+                    <div class="report-badge"><i class="fa fa-file-text"></i> Official Result</div>
+                </div>
+                <div class="student-meta-grid">
+                    <div class="meta-item"><strong>Student Name:</strong> ${student.name}</div>
+                    <div class="meta-item"><strong>Student ID:</strong> ${student.id}</div>
+                    <div class="meta-item"><strong>Faculty:</strong> ${student.faculty}</div>
+                    <div class="meta-item"><strong>Department:</strong> ${student.department || 'General'}</div>
+                    <div class="meta-item"><strong>Semester:</strong> ${student.semester}</div>
+                    <div class="meta-item"><strong>Shift:</strong> ${student.shift}</div>
+                </div>
+                <div class="results-box">
+                    <h3><i class="fa fa-book"></i> Subject Performance</h3>
+                    <div class="courses-list">
+                        ${student.courses.map(c => `<div class="course-row"><span class="course-name">${c.course}</span><span class="course-score ${c.mark < 50 ? 'score-fail' : 'score-pass'}">${c.mark} ${c.mark < 50 ? '(Fail)' : '(Pass)'}</span></div>`).join("")}
+                    </div>
+                </div>
+                <div class="summary-wrapper">
+                    <div class="summary-block"><h4>Average Score</h4><div class="grand-value">${student.average.toFixed(2)}%</div></div>
+                    <div class="summary-block"><h4>Final Grade</h4><div class="grade-circle ${gClass}">${student.grade}</div></div>
+                </div>
+            </div>`;
+        }else{
+            result.innerHTML=`<div style="max-width:500px; margin:30px auto; text-align:center; padding:25px; border-radius:16px; background:#fee2e2; border:1px solid #fca5a5; color:#dc2626;"><i class="fa fa-exclamation-triangle" style="font-size:32px; margin-bottom:10px;"></i><h3 style="margin:0; font-weight:600;">Invalid ID or Password!</h3><p style="margin:6px 0 0 0; font-size:14px; color:#991b1b;">Fadlan hubi aqoonsigaaga ardaynimo mar kale.</p></div>`;
+        }
+    }
+
+    function exportYearData(){
+        if(archiveFaculty.value==="" || archiveYear.value==="" || customFolder.value===''){ alert("Please fill all archive fields"); return; }
+        let facultyStudents = students.filter(s=>s.faculty===archiveFaculty.value);
+        if(facultyStudents.length === 0){ alert("No students found in this faculty."); return; }
+
+        let archive={ faculty: archiveFaculty.value, year: archiveYear.value, folder: customFolder.value, date: new Date().toLocaleDateString(), data: facultyStudents };
+        archives.push(archive); localStorage.setItem("archives", JSON.stringify(archives));
+        students = students.filter(s=>s.faculty!==archiveFaculty.value); localStorage.setItem("students", JSON.stringify(students));
+        
+        if (typeof db !== 'undefined') { db.ref('students').set(students); db.ref('archives').set(archives); }
+        displayArchives(); if(currentFaculty === archiveFaculty.value){ displayStudents(); } updateDashboard();
+        archiveYear.value=""; customFolder.value=""; archiveFaculty.selectedIndex=0;
+    }
+
+    function displayArchives(){
+        archiveTable.innerHTML="";
+        archives.forEach((archive,index)=>{
+            archiveTable.innerHTML += `<tr><td>${archive.faculty}</td><td>${archive.year}</td><td><i class="fa fa-folder" style="color:#eab308; margin-right:6px;"></i>${archive.folder}</td><td>${archive.date}</td><td><span class="report-badge" style="padding:4px 10px;">${archive.data.length} Studs</span></td><td><button class="edit" onclick="openArchive(${index})">Open</button><button class="delete" onclick="deleteArchive(${index})">Delete</button></td></tr>`;
+        });
+    }
+
+    function deleteArchive(index){
+        if(confirm("Delete Archive Permanently?")){ archives.splice(index,1); localStorage.setItem("archives", JSON.stringify(archives)); if (typeof db !== 'undefined') db.ref('archives').set(archives); displayArchives(); archiveResult.innerHTML=""; updateDashboard(); }
+    }
+
+    function openArchive(index){
+        let archive = archives[index]; if(archive.data.length === 0){ archiveResult.innerHTML = "<h3>No data found.</h3>"; return; }
+        let html=`<div class="table-container" style="animation: fadeIn 0.3s ease;"><h3>Folder: ${archive.folder} (${archive.faculty} - ${archive.year})</h3><table><thead><tr><th>Name</th><th>ID</th><th>Department</th><th>Shift</th><th>Semester</th><th>${archive.data[0]?.courses[0]?.course||'Course 1'}</th><th>${archive.data[0]?.courses[1]?.course||'Course 2'}</th><th>${archive.data[0]?.courses[2]?.course||'Course 3'}</th><th>${archive.data[0]?.courses[3]?.course||'Course 4'}</th><th>${archive.data[0]?.courses[4]?.course||'Course 5'}</th><th>Average</th><th>Grade</th></tr></thead><tbody>`;
+        archive.data.forEach(student=>{
+            html += `<tr><td style="font-weight:600; text-align:left;">${student.name}</td><td><code>${student.id}</code></td><td>${student.department}</td><td>${student.shift}</td><td>${student.semester}</td><td>${student.courses[0].mark}</td><td>${student.courses[1].mark}</td><td>${student.courses[2].mark}</td><td>${student.courses[3].mark}</td><td>${student.courses[4].mark}</td><td>${student.average.toFixed(2)}%</td><td><strong>${student.grade}</strong></td></tr>`;
+        });
+        html += `</tbody></table></div>`; archiveResult.innerHTML=html;
+    }
+
+    displayAdmins(); displayArchives(); updateDashboard();
+</script>
+
+</body>
+</html>
